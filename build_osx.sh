@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd build/Debug
+cd build/Release
 
 chmod -R +w Coinsy-Qt.app/Contents/Frameworks
 install_name_tool -id @executable_path/../Frameworks/libminiupnpc.10.dylib Coinsy-Qt.app/Contents/Frameworks/libminiupnpc.10.dylib

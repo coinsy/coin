@@ -976,15 +976,13 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     unsigned nReward = 24;
     
 	int64 nSubsidy = nReward * COIN;
-
+    
     /**
-     * For the first nReward blocks we generate small amounts.
+     * For the first 240 blocks we generate small amounts.
      */
-    if (nHeight < nReward)
+    if (nHeight < nReward * 10)
     {
-        nSubsidy =
-            (nHeight * nReward) * (nReward * nReward * nReward) * 3
-        ;
+        nSubsidy = nHeight * nReward;
         
         if (fDebug && GetBoolArg("-printcreation"))
         {
@@ -1026,23 +1024,13 @@ int64 GetProofOfStakeReward(
 	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
 
     /**
-     * Day 8.3333333 50%
-     * Day 16.666667 40%
      * Year 1 30%.
      * Year 2 20%.
      * Year 3 10%.
      * Year 4 5%.
      * Year 5 2%.
      */
-    if (nHeight <= 12000)
-    {
-        nRewardCoinYear = 50 * MAX_MINT_PROOF_OF_STAKE;
-    }
-    else if (nHeight <= 24000)
-    {
-        nRewardCoinYear = 40 * MAX_MINT_PROOF_OF_STAKE;
-    }
-    else if (nHeight < YEARLY_BLOCKCOUNT)
+    if (nHeight < YEARLY_BLOCKCOUNT)
     {
 		nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
     }
@@ -1064,10 +1052,25 @@ int64 GetProofOfStakeReward(
     }
     
     int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;
+    
 	if (fDebug && GetBoolArg("-printcreation"))
-        printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
-
+    {
+        printf(
+            "GetProofOfStakeReward(): create=%s nCoinAge=%"PRI64d" nBits=%d\n",
+            FormatMoney(nSubsidy).c_str(), nCoinAge, nBits
+        );
+    }
+    
     return nSubsidy;
+}
+
+int64 GetProofOfCredentialsReward()
+{
+    /**
+     * Implementation removed temporarily to prevent clones from destroying our
+     * research and development.
+     */
+    return 0;
 }
 
 static const int64 nTargetTimespan = 30 * 60;  

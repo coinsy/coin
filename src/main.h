@@ -26,17 +26,21 @@ class CRequestTracker;
 class CNode;
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
-static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
-static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
-static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
+static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE / 2;
+static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE / 50;
+static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE / 100;
 static const unsigned int MAX_INV_SZ = 50000;
 static const int64 MIN_TX_FEE = 1.0 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 1.0 * CENT;
-static const int64 MAX_MONEY = 77000000 * COIN;			// 77 million
-static const int64 MAX_MINT_PROOF_OF_STAKE = 0.01 * COIN;	// 1% annual interest
+static const int64 MAX_MONEY = 77000000 * COIN; // 77 million
+static const int64 MAX_MINT_PROOF_OF_STAKE = 0.01 * COIN; // 1% annual interest
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
-static const int POW_CUTOFF_BLOCK = 10000; // Almost 5 weeks @ 5 mins per block (34.72222222 days).
+/**
+ * Because of the halving algorithm we could technically let PoW run forever,
+ * instead we let it run until there is no reward left.
+ */
+static const int POW_CUTOFF_BLOCK = 252692;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -113,6 +117,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash);
 int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight);
+int64 GetProofOfCredentialsReward();
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64 nTime, unsigned int nBlockTime);
 int GetNumBlocksOfPeers();

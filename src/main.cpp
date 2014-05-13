@@ -978,9 +978,9 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 	int64 nSubsidy = nReward * COIN;
     
     /**
-     * For the first 240 blocks we generate small amounts.
+     * For the first nReward blocks we generate small amounts.
      */
-    if (nHeight < nReward * 10)
+    if (nHeight < nReward)
     {
         nSubsidy = nHeight * nReward;
         
@@ -2957,9 +2957,6 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
     // Don't know what it is, just say we already got one
     return true;
 }
-
-
-
 
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce

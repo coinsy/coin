@@ -823,7 +823,7 @@ public:
         else
             vch.insert(it, first, last);
     }
-#if (defined WIN32)
+#if (defined WIN32 || defined __linux__)
     void insert(
         iterator it, std::vector<char>::const_iterator first,
         std::vector<char>::const_iterator last

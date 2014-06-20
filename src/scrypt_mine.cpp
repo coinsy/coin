@@ -61,8 +61,7 @@ extern "C" void scrypt_core_3way(uint32_t *X, uint32_t *Y, uint32_t *Z, uint32_t
 extern  "C" void scrypt_core(uint32_t *X, uint32_t *V);
 
 #endif
-
-void *scrypt_buffer_alloc() {
+void * scrypt_buffer_alloc() {
     return malloc(SCRYPT_BUFFER_SIZE);
 }
 

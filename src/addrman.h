@@ -274,7 +274,7 @@ public:
             READWRITE(nKey);
             READWRITE(nNew);
             READWRITE(nTried);
-
+        
             CAddrMan *am = const_cast<CAddrMan*>(this);
             if (fWrite)
             {

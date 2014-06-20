@@ -41,10 +41,17 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
+#define FORK_5007 5007
+
 /**
  * 365 days * 1440 minutes.
  */
 static const unsigned YEARLY_BLOCKCOUNT = 365 * 1440;
+
+/**
+ * 365 days * 1440 minutes.
+ */
+static const unsigned YEARLY_BLOCKCOUNT_NEW = 365 * 288;
 
 /**
  * The minimum stake age is 7 days.
@@ -973,7 +980,16 @@ int generateMTRandom(unsigned int s, int range)
  */
 int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 {
-    unsigned nReward = 24;
+    unsigned nReward = 0;
+    
+    if (nHeight < FORK_5007)
+    {
+        nReward = 24;
+    }
+    else
+    {
+        nReward = nHeight % 7 == 0 ? 240 : 24;
+    }
     
 	int64 nSubsidy = nReward * COIN;
     
@@ -994,19 +1010,39 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        /**
-         * Reward is halved every ~7.01875 days.
-         */
-        double dFactor = nHeight / (YEARLY_BLOCKCOUNT / 52.0f);
-        
-        nSubsidy >>= (int64)dFactor;
-        
-        if (fDebug && GetBoolArg("-printcreation"))
+        if (nHeight < FORK_5007)
         {
-            printf(
-                "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
-                nHeight, dFactor, FormatMoney(nSubsidy).c_str()
-            );
+            /**
+             * Reward is halved every N days.
+             */
+            double dFactor = nHeight / (YEARLY_BLOCKCOUNT / 52.0f);
+            
+            nSubsidy >>= (int64)dFactor;
+            
+            if (fDebug && GetBoolArg("-printcreation"))
+            {
+                printf(
+                    "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
+                    nHeight, dFactor, FormatMoney(nSubsidy).c_str()
+                );
+            }
+        }
+        else
+        {
+            /**
+             * Reward is halved every ~7.01875 days.
+             */
+            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_NEW / 52.0f);
+            
+            nSubsidy >>= (int64)dFactor;
+            
+            if (fDebug && GetBoolArg("-printcreation"))
+            {
+                printf(
+                    "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
+                    nHeight, dFactor, FormatMoney(nSubsidy).c_str()
+                );
+            }
         }
     }
 
@@ -1032,23 +1068,23 @@ int64 GetProofOfStakeReward(
      */
     if (nHeight < YEARLY_BLOCKCOUNT)
     {
-		nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
     }
-	else if (nHeight < (2 * YEARLY_BLOCKCOUNT))
+    else if (nHeight < (2 * YEARLY_BLOCKCOUNT))
     {
-		nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
-	}
+        nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+    }
     else if (nHeight < (3 * YEARLY_BLOCKCOUNT))
     {
-		nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
-	}
+        nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+    }
     else if (nHeight < (4 * YEARLY_BLOCKCOUNT))
     {
-		nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
-	}
+        nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+    }
     else if (nHeight < (5 * YEARLY_BLOCKCOUNT))
     {
-		nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
     }
     
     int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;
@@ -2997,7 +3033,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->fDisconnect = true;
             return false;
         }
-
         if (pfrom->nVersion == 10300)
             pfrom->nVersion = 300;
         if (!vRecv.empty())

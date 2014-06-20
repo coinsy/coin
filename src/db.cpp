@@ -595,7 +595,9 @@ bool CTxDB::WriteCheckpointPubKey(const string& strPubKey)
 CBlockIndex static * InsertBlockIndex(uint256 hash)
 {
     if (hash == 0)
+    {
         return NULL;
+    }
 
     // Return existing
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);

@@ -915,7 +915,10 @@ public:
         uint256 thash;
         void * scratchbuff = scrypt_buffer_alloc();
 
-        scrypt_hash(CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash), scratchbuff);
+        scrypt_hash(
+            CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash),
+            scratchbuff
+        );
 
         scrypt_buffer_free(scratchbuff);
 
@@ -933,9 +936,9 @@ public:
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
         // Take last bit of block hash as entropy bit
-        unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
+        unsigned int nEntropyBit = ((GetHash(/*nHeight*/).Get64()) & 1llu);
         if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash().ToString().c_str(), nEntropyBit);
+            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash(/*nHeight*/).ToString().c_str(), nEntropyBit);
         return nEntropyBit;
     }
 
@@ -1409,7 +1412,7 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
-        return block.GetHash();
+        return block.GetHash(/*0*/);
     }
 
 

@@ -1066,25 +1066,51 @@ int64 GetProofOfStakeReward(
      * Year 4 5%.
      * Year 5 2%.
      */
-    if (nHeight < YEARLY_BLOCKCOUNT)
+    if (nHeight < FORK_5007)
     {
-        nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        if (nHeight < YEARLY_BLOCKCOUNT)
+        {
+            nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT))
+        {
+            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT))
+        {
+            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT))
+        {
+            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT))
+        {
+            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        }
     }
-    else if (nHeight < (2 * YEARLY_BLOCKCOUNT))
+    else
     {
-        nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
-    }
-    else if (nHeight < (3 * YEARLY_BLOCKCOUNT))
-    {
-        nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
-    }
-    else if (nHeight < (4 * YEARLY_BLOCKCOUNT))
-    {
-        nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
-    }
-    else if (nHeight < (5 * YEARLY_BLOCKCOUNT))
-    {
-        nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        if (nHeight < YEARLY_BLOCKCOUNT_NEW)
+        {
+            nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_NEW))
+        {
+            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_NEW))
+        {
+            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_NEW))
+        {
+            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_NEW))
+        {
+            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        }
     }
     
     int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;

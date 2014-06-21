@@ -42,6 +42,7 @@ static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 #define FORK_5007 5007
+#define FORK_5077 5077
 
 /**
  * 365 days * 1440 minutes.
@@ -49,9 +50,14 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 static const unsigned YEARLY_BLOCKCOUNT = 365 * 1440;
 
 /**
- * 365 days * 1440 minutes.
+ * 365 days * 288 minutes.
  */
-static const unsigned YEARLY_BLOCKCOUNT_NEW = 365 * 288;
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5007 = 365 * 288;
+
+/**
+ * 365 days * 576 minutes.
+ */
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5077 = 365 * 576;
 
 /**
  * The minimum stake age is 7 days.
@@ -988,7 +994,14 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        nReward = nHeight % 7 == 0 ? 240 : 24;
+        if (nHeight < FORK_5077)
+        {
+            nReward = nHeight % 7 == 0 ? 240 : 24;
+        }
+        else
+        {
+            nReward = nHeight % 7 == 0 ? 960 : 24;
+        }
     }
     
 	int64 nSubsidy = nReward * COIN;
@@ -1027,12 +1040,29 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
                 );
             }
         }
+        else if (nHeight < FORK_5077)
+        {
+            /**
+             * Reward is halved every ~7.01875 days.
+             */
+            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5007 / 52.0f);
+            
+            nSubsidy >>= (int64)dFactor;
+            
+            if (fDebug && GetBoolArg("-printcreation"))
+            {
+                printf(
+                    "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
+                    nHeight, dFactor, FormatMoney(nSubsidy).c_str()
+                );
+            }
+        }
         else
         {
             /**
              * Reward is halved every ~7.01875 days.
              */
-            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_NEW / 52.0f);
+            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5077 / 52.0f);
             
             nSubsidy >>= (int64)dFactor;
             
@@ -1089,25 +1119,48 @@ int64 GetProofOfStakeReward(
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
     }
-    else
+    else if (nHeight < FORK_5077)
     {
-        if (nHeight < YEARLY_BLOCKCOUNT_NEW)
+        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5007)
         {
             nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_NEW))
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5007))
         {
             nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_NEW))
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5007))
         {
             nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_NEW))
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5007))
         {
             nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_NEW))
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5007))
+        {
+            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        }
+    }
+    else
+    {
+        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5077)
+        {
+            nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5077))
+        {
+            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5077))
+        {
+            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5077))
+        {
+            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5077))
         {
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
@@ -1126,17 +1179,8 @@ int64 GetProofOfStakeReward(
     return nSubsidy;
 }
 
-int64 GetProofOfCredentialsReward()
-{
-    /**
-     * Implementation removed temporarily to prevent clones from destroying our
-     * research and development.
-     */
-    return 0;
-}
-
 static const int64 nTargetTimespan = 30 * 60;  
-static const int64 nTargetSpacingWorkMax = 12 * nStakeTargetSpacing; 
+static const int64 nTargetSpacingWorkMax = 12 * nStakeTargetSpacing;
 
 //
 // maximum nBits value could possible be required nTime after
@@ -1190,7 +1234,19 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 {
     CBigNum bnTargetLimit = bnProofOfWorkLimit;
 
-    if(fProofOfStake)
+    /**
+     * Blocks 5077 and after use 2.5 min spacing.
+     */
+    if (pindexLast->nHeight < FORK_5077)
+    {
+        nStakeTargetSpacing = 300;
+    }
+    else
+    {
+        nStakeTargetSpacing = 300 / 2;
+    }
+    
+    if (fProofOfStake)
     {
         // Proof-of-Stake blocks has own target limit since nVersion=3 supermajority on mainNet and always on testNet
         bnTargetLimit = bnProofOfStakeLimit;
@@ -2270,24 +2326,6 @@ bool CBlock::AcceptBlock()
     {
         if (!tx.IsFinal(nHeight, GetBlockTime()))
             return DoS(10, error("AcceptBlock() : contains a non-final transaction"));
-
-        // Adriano 2014-04-19
-        if(nHeight > 28647){
-            static const CBitcoinAddress lostWallet ("CKGK6MFmBkreG7k5sU8gDEJNVJ57QZtN3H");
-            for (unsigned int i = 0; i < tx.vin.size(); i++){
-                uint256 hashBlock;
-                CTransaction txPrev;
-                if(GetTransaction(tx.vin[i].prevout.hash, txPrev, hashBlock)){  // get the vin's previous transaction
-                    CTxDestination source;
-                    if (ExtractDestination(txPrev.vout[tx.vin[i].prevout.n].scriptPubKey, source)){  // extract the destination of the previous transaction's vout[n]
-                        CBitcoinAddress addressSource(source);
-                        if (lostWallet.Get() == addressSource.Get()){
-                            return error("CBlock::AcceptBlock() : Banned Address %s tried to send a transaction (rejecting it).", addressSource.ToString().c_str());
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // Check that the block chain matches the known block chain up to a checkpoint

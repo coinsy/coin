@@ -42,7 +42,7 @@ static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 #define FORK_5007 5007
-#define FORK_5077 5077
+#define FORK_5037 5037
 
 /**
  * 365 days * 1440 minutes.
@@ -989,7 +989,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        if (nHeight < FORK_5077)
+        if (nHeight < FORK_5037)
         {
             nReward = nHeight % 7 == 0 ? 240 : 24;
         }
@@ -1210,7 +1210,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     int nHeight = pindexLast->nHeight + 1; // Next block
     
     // old skool ppc style
-    if (nHeight <= FORK_5077)
+    if (nHeight <= FORK_5037)
     {
         int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
         

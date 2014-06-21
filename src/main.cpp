@@ -42,7 +42,7 @@ static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
 #define FORK_5007 5007
-#define FORK_5077 5077
+#define FORK_5107 5107
 
 /**
  * 365 days * 1440 minutes.
@@ -57,7 +57,7 @@ static const unsigned YEARLY_BLOCKCOUNT_FORK_5007 = 365 * 288;
 /**
  * 365 days * 576 minutes.
  */
-static const unsigned YEARLY_BLOCKCOUNT_FORK_5077 = 365 * 576;
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5107 = 365 * 576;
 
 /**
  * The minimum stake age is 7 days.
@@ -994,7 +994,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        if (nHeight < FORK_5077)
+        if (nHeight < FORK_5107)
         {
             nReward = nHeight % 7 == 0 ? 240 : 24;
         }
@@ -1040,7 +1040,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
                 );
             }
         }
-        else if (nHeight < FORK_5077)
+        else if (nHeight < FORK_5107)
         {
             /**
              * Reward is halved every ~7.01875 days.
@@ -1062,7 +1062,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
             /**
              * Reward is halved every ~7.01875 days.
              */
-            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5077 / 52.0f);
+            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5107 / 52.0f);
             
             nSubsidy >>= (int64)dFactor;
             
@@ -1119,7 +1119,7 @@ int64 GetProofOfStakeReward(
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
     }
-    else if (nHeight < FORK_5077)
+    else if (nHeight < FORK_5107)
     {
         if (nHeight < YEARLY_BLOCKCOUNT_FORK_5007)
         {
@@ -1144,23 +1144,23 @@ int64 GetProofOfStakeReward(
     }
     else
     {
-        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5077)
+        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5107)
         {
             nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5077))
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5107))
         {
             nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5077))
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5107))
         {
             nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5077))
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5107))
         {
             nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5077))
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5107))
         {
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
@@ -1237,7 +1237,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     /**
      * Blocks 5077 and after use 2.5 min spacing.
      */
-    if (pindexLast->nHeight < FORK_5077)
+    if (pindexLast->nHeight < FORK_5107)
     {
         nStakeTargetSpacing = 300;
     }

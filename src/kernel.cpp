@@ -10,7 +10,8 @@
 using namespace std;
 
 extern int nStakeMaxAge;
-extern int nStakeTargetSpacing;
+extern int nWorkAndStakeTargetSpacing;
+extern int nWorkAndStakeTargetSpacing6007;
 
 // Modifier interval: time to elapse before new modifier is computed
 // Set to 3-hour for production network and 20-minute for test network
@@ -123,7 +124,7 @@ static bool SelectBlockFromCandidates(
 // block. This is to make it difficult for an attacker to gain control of
 // additional bits in the stake modifier, even after generating a chain of
 // blocks.
-bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModifier, bool& fGeneratedStakeModifier)
+bool ComputeNextStakeModifier(const unsigned int nBlockPos, const CBlockIndex* pindexPrev, uint64& nStakeModifier, bool& fGeneratedStakeModifier)
 {
     nStakeModifier = 0;
     fGeneratedStakeModifier = false;
@@ -146,7 +147,16 @@ bool ComputeNextStakeModifier(const CBlockIndex* pindexPrev, uint64& nStakeModif
 
     // Sort candidate blocks by timestamp
     vector<pair<int64, uint256> > vSortedByTimestamp;
-    vSortedByTimestamp.reserve(64 * nModifierInterval / nStakeTargetSpacing);
+    
+    if (nBlockPos < FORK_5097)
+    {
+        vSortedByTimestamp.reserve(64 * nModifierInterval / nWorkAndStakeTargetSpacing);
+    }
+    else
+    {
+        vSortedByTimestamp.reserve(64 * nModifierInterval / nWorkAndStakeTargetSpacing6007);
+    }
+    
     int64 nSelectionInterval = GetStakeModifierSelectionInterval();
     int64 nSelectionIntervalStart = (pindexPrev->GetBlockTime() / nModifierInterval) * nModifierInterval - nSelectionInterval;
     const CBlockIndex* pindex = pindexPrev;

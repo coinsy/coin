@@ -25,6 +25,10 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
+#define FORK_5007 5007
+#define FORK_5037 5037
+#define FORK_5097 5097
+
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE / 2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE / 50;

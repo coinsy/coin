@@ -41,8 +41,6 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
-#define FORK_5007 5007
-#define FORK_5037 5037
 
 /**
  * 365 days * 1440 minutes.
@@ -55,6 +53,11 @@ static const unsigned YEARLY_BLOCKCOUNT = 365 * 1440;
 static const unsigned YEARLY_BLOCKCOUNT_FORK_5007 = 365 * 288;
 
 /**
+ * 365 days * 288 minutes.
+ */
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5097 = 365 * 144;
+
+/**
  * The minimum stake age is 7 days.
  */
 unsigned int nStakeMinAge = 60 * 60 * 24 * 7;
@@ -65,9 +68,14 @@ unsigned int nStakeMinAge = 60 * 60 * 24 * 7;
 unsigned int nStakeMaxAge = 60 * 60 * 24 * 48;
 
 /**
- * The stake target spacing is 5 minutes.
+ * The work and stake target spacing is 5 minutes.
  */
-unsigned int nStakeTargetSpacing = 300;
+unsigned int nWorkAndStakeTargetSpacing = 300;
+
+/**
+ * The work and stake target spacing after block 6006 is 2.5 minutes.
+ */
+unsigned int nWorkAndStakeTargetSpacing6007 = 150;
 
 /**
  * The chain start time.
@@ -993,6 +1001,10 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
         {
             nReward = nHeight % 7 == 0 ? 240 : 24;
         }
+        else if (nHeight >= FORK_5097)
+        {
+            nReward = nHeight % 7 == 0 ? 9600 : 24;
+        }
         else
         {
             nReward = nHeight % 7 == 0 ? 2400 : 24;
@@ -1000,6 +1012,8 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     
 	int64 nSubsidy = nReward * COIN;
+    
+    double dFactor = 0.0;
     
     /**
      * For the first nReward blocks we generate small amounts.
@@ -1018,39 +1032,40 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        if (nHeight < FORK_5007)
+        if (nHeight <  FORK_5007)
         {
             /**
              * Reward is halved every N days.
              */
-            double dFactor = nHeight / (YEARLY_BLOCKCOUNT / 52.0f);
+            dFactor = nHeight / (YEARLY_BLOCKCOUNT / 52.0f);
             
             nSubsidy >>= (int64)dFactor;
+        }
+        else if (nHeight >= FORK_5097)
+        {
+            /**
+             * Reward is halved every N days.
+             */
+            dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5097 / 52.0f);
             
-            if (fDebug && GetBoolArg("-printcreation"))
-            {
-                printf(
-                    "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
-                    nHeight, dFactor, FormatMoney(nSubsidy).c_str()
-                );
-            }
+            nSubsidy >>= (int64)dFactor;
         }
         else
         {
             /**
              * Reward is halved every ~7.01875 days.
              */
-            double dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5007 / 52.0f);
+            dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5007 / 52.0f);
             
             nSubsidy >>= (int64)dFactor;
-            
-            if (fDebug && GetBoolArg("-printcreation"))
-            {
-                printf(
-                    "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
-                    nHeight, dFactor, FormatMoney(nSubsidy).c_str()
-                );
-            }
+        }
+        
+        if (fDebug && GetBoolArg("-printcreation"))
+        {
+            printf(
+                "GetProofOfWorkReward(): height=%d, dFactor=%.2f, create=%s\n",
+                nHeight, dFactor, FormatMoney(nSubsidy).c_str()
+            );
         }
     }
 
@@ -1097,6 +1112,29 @@ int64 GetProofOfStakeReward(
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
     }
+    else if (nHeight >= FORK_5097)
+    {
+        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5097)
+        {
+            nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5097))
+        {
+            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5097))
+        {
+            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5097))
+        {
+            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+        }
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5097))
+        {
+            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+        }
+    }
     else
     {
         if (nHeight < YEARLY_BLOCKCOUNT_FORK_5007)
@@ -1134,8 +1172,7 @@ int64 GetProofOfStakeReward(
     return nSubsidy;
 }
 
-static const int64 nTargetTimespan = 30 * 60;  
-static const int64 nTargetSpacingWorkMax = 12 * nStakeTargetSpacing;
+static const int64 nTargetTimespan = 30 * 60;
 
 //
 // maximum nBits value could possible be required nTime after
@@ -1212,6 +1249,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     // old skool ppc style
     if (nHeight <= FORK_5037)
     {
+        static const int64 nTargetSpacingWorkMax = 12 * nWorkAndStakeTargetSpacing;
+
         int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
         
         if(nActualSpacing < 0)
@@ -1222,16 +1261,44 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         {
             nActualSpacing = nTargetTimespan;
         }
-
+        
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
         bnNew.SetCompact(pindexPrev->nBits);
 
-        int64 nTargetSpacing = fProofOfStake? nStakeTargetSpacing : min(nTargetSpacingWorkMax, (int64) nStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+        int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing : min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
         int64 nInterval = nTargetTimespan / nTargetSpacing;
         bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
         bnNew /= ((nInterval + 1) * nTargetSpacing);
         
+        if (bnNew > bnTargetLimit)
+            bnNew = bnTargetLimit;
+    }
+    else if (nHeight >= FORK_5097)
+    {
+        // 1.5 %
+        static const int64 nTargetSpacingWorkMax =  nWorkAndStakeTargetSpacing6007 * 1.5;
+        
+        int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+        
+        if(nActualSpacing < 0)
+        {
+            nActualSpacing = 1;
+        }
+        else if(nActualSpacing > nTargetTimespan)
+        {
+            nActualSpacing = nTargetTimespan;
+        }
+        
+        // ppcoin: target change every block
+        // ppcoin: retarget with exponential moving toward target spacing
+        CBigNum bnNew;
+        bnNew.SetCompact(pindexPrev->nBits);
+        int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing6007 : min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing6007 * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+        int64 nInterval = nTargetTimespan / nTargetSpacing;
+        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+        bnNew /= ((nInterval + 1) * nTargetSpacing);
+
         if (bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;
     }
@@ -2197,7 +2264,8 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos)
     // ppcoin: compute stake modifier
     uint64 nStakeModifier = 0;
     bool fGeneratedStakeModifier = false;
-    if (!ComputeNextStakeModifier(pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
+    
+    if (!ComputeNextStakeModifier(nBlockPos, pindexNew->pprev, nStakeModifier, fGeneratedStakeModifier))
         return error("AddToBlockIndex() : ComputeNextStakeModifier() failed");
     pindexNew->SetStakeModifier(nStakeModifier, fGeneratedStakeModifier);
     pindexNew->nStakeModifierChecksum = GetStakeModifierChecksum(pindexNew);
@@ -2757,7 +2825,8 @@ bool LoadBlockIndex(bool fAllowNew)
         nStakeMaxAge = 60 * 60; // test net min age is 60 min
 		nModifierInterval = 60; // test modifier interval is 2 minutes
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
-        nStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
+        nWorkAndStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
+        nWorkAndStakeTargetSpacing6007 = 1; // 1 min
     }
 
     //

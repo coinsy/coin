@@ -53,9 +53,9 @@ static const unsigned YEARLY_BLOCKCOUNT = 365 * 1440;
 static const unsigned YEARLY_BLOCKCOUNT_FORK_5007 = 365 * 288;
 
 /**
- * 365 days * 288 minutes.
+ * 365 days * 576 minutes.
  */
-static const unsigned YEARLY_BLOCKCOUNT_FORK_5097 = 365 * 144;
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5097 = 365 * 576;
 
 /**
  * The minimum stake age is 7 days.

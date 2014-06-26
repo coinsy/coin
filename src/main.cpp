@@ -1173,6 +1173,7 @@ int64 GetProofOfStakeReward(
 }
 
 static const int64 nTargetTimespan = 30 * 60;
+static const int64 nTargetTimespan5097 = 150;
 
 //
 // maximum nBits value could possible be required nTime after
@@ -1276,18 +1277,17 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     }
     else if (nHeight >= FORK_5097)
     {
-        // 1.5 %
-        static const int64 nTargetSpacingWorkMax =  nWorkAndStakeTargetSpacing6007 * 1.5;
+        static const int64 nTargetSpacingWorkMax = 12 * nWorkAndStakeTargetSpacing6007;
         
         int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
-        
+
         if(nActualSpacing < 0)
         {
             nActualSpacing = 1;
         }
-        else if(nActualSpacing > nTargetTimespan)
+        else if(nActualSpacing > nTargetTimespan5097)
         {
-            nActualSpacing = nTargetTimespan;
+            nActualSpacing = nTargetTimespan5097;
         }
         
         // ppcoin: target change every block
@@ -1295,12 +1295,16 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         CBigNum bnNew;
         bnNew.SetCompact(pindexPrev->nBits);
         int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing6007 : min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing6007 * (1 + pindexLast->nHeight - pindexPrev->nHeight));
-        int64 nInterval = nTargetTimespan / nTargetSpacing;
+        int64 nInterval = nTargetTimespan5097 / nTargetSpacing;
         bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
         bnNew /= ((nInterval + 1) * nTargetSpacing);
 
         if (bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;
+        
+        if(fDebug)
+          printf("RETARGET nTargetTimespan5097 = %"PRI64d", nActualSpacing = %"PRI64d", nTargetSpacingWorkMax = %"PRI64d", nTargetSpacing = %"PRI64d"\n",
+            nTargetTimespan5097, nActualSpacing, nTargetSpacingWorkMax, nTargetSpacing);
     }
     else
     {

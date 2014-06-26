@@ -48,14 +48,9 @@ static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 static const unsigned YEARLY_BLOCKCOUNT = 365 * 1440;
 
 /**
- * 365 days * 288 minutes.
- */
-static const unsigned YEARLY_BLOCKCOUNT_FORK_5007 = 365 * 288;
-
-/**
  * 365 days * 576 minutes.
  */
-static const unsigned YEARLY_BLOCKCOUNT_FORK_5097 = 365 * 576;
+static const unsigned YEARLY_BLOCKCOUNT_FORK_5000 = 365 * 576;
 
 /**
  * The minimum stake age is 7 days.
@@ -73,9 +68,9 @@ unsigned int nStakeMaxAge = 60 * 60 * 24 * 48;
 unsigned int nWorkAndStakeTargetSpacing = 300;
 
 /**
- * The work and stake target spacing after block 6006 is 2.5 minutes.
+ * The work and stake target spacing starting at block 5000 is 2.5 minutes.
  */
-unsigned int nWorkAndStakeTargetSpacing6007 = 150;
+unsigned int nWorkAndStakeTargetSpacing5000 = 2.5 * 60;
 
 /**
  * The chain start time.
@@ -991,24 +986,13 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 {
     unsigned nReward = 0;
     
-    if (nHeight < FORK_5007)
+    if (nHeight < FORK_5000)
     {
         nReward = 24;
     }
     else
     {
-        if (nHeight < FORK_5037)
-        {
-            nReward = nHeight % 7 == 0 ? 240 : 24;
-        }
-        else if (nHeight >= FORK_5097)
-        {
-            nReward = nHeight % 7 == 0 ? 9600 : 24;
-        }
-        else
-        {
-            nReward = nHeight % 7 == 0 ? 2400 : 24;
-        }
+        nReward = nHeight % 7 == 0 ? 9600 : 24;
     }
     
 	int64 nSubsidy = nReward * COIN;
@@ -1032,7 +1016,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        if (nHeight <  FORK_5007)
+        if (nHeight < FORK_5000)
         {
             /**
              * Reward is halved every N days.
@@ -1041,21 +1025,12 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
             
             nSubsidy >>= (int64)dFactor;
         }
-        else if (nHeight >= FORK_5097)
-        {
-            /**
-             * Reward is halved every N days.
-             */
-            dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5097 / 52.0f);
-            
-            nSubsidy >>= (int64)dFactor;
-        }
         else
         {
             /**
              * Reward is halved every ~7.01875 days.
              */
-            dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5007 / 52.0f);
+            dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5000 / 52.0f);
             
             nSubsidy >>= (int64)dFactor;
         }
@@ -1082,15 +1057,15 @@ int64 GetProofOfStakeReward(
     
 	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
 
-    /**
-     * Year 1 30%.
-     * Year 2 20%.
-     * Year 3 10%.
-     * Year 4 5%.
-     * Year 5 2%.
-     */
-    if (nHeight < FORK_5007)
+    if (nHeight < FORK_5000)
     {
+        /**
+         * Year 1 30%.
+         * Year 2 20%.
+         * Year 3 10%.
+         * Year 4 5%.
+         * Year 5 2%.
+         */
         if (nHeight < YEARLY_BLOCKCOUNT)
         {
             nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
@@ -1112,50 +1087,34 @@ int64 GetProofOfStakeReward(
             nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
         }
     }
-    else if (nHeight >= FORK_5097)
-    {
-        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5097)
-        {
-            nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
-        }
-        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5097))
-        {
-            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
-        }
-        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5097))
-        {
-            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
-        }
-        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5097))
-        {
-            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
-        }
-        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5097))
-        {
-            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
-        }
-    }
     else
     {
-        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5007)
+        /**
+         * Year 1 30%.
+         * Year 2 15%.
+         * Year 3 7%.
+         * Year 4 3%.
+         * Year 5 1%.
+         */
+        if (nHeight < YEARLY_BLOCKCOUNT_FORK_5000)
         {
             nRewardCoinYear = 30 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5007))
+        else if (nHeight < (2 * YEARLY_BLOCKCOUNT_FORK_5000))
         {
-            nRewardCoinYear = 20 * MAX_MINT_PROOF_OF_STAKE;
+            nRewardCoinYear = 15 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5007))
+        else if (nHeight < (3 * YEARLY_BLOCKCOUNT_FORK_5000))
         {
-            nRewardCoinYear = 10 * MAX_MINT_PROOF_OF_STAKE;
+            nRewardCoinYear = 4 * MAX_MINT_PROOF_OF_STAKE;
         }
-        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5007))
+        else if (nHeight < (4 * YEARLY_BLOCKCOUNT_FORK_5000))
         {
-            nRewardCoinYear = 5 * MAX_MINT_PROOF_OF_STAKE;
+            nRewardCoinYear = 3 * YEARLY_BLOCKCOUNT_FORK_5000;
         }
-        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5007))
+        else if (nHeight < (5 * YEARLY_BLOCKCOUNT_FORK_5000))
         {
-            nRewardCoinYear = 2 * MAX_MINT_PROOF_OF_STAKE;
+            nRewardCoinYear = 1 * MAX_MINT_PROOF_OF_STAKE;
         }
     }
     
@@ -1173,7 +1132,6 @@ int64 GetProofOfStakeReward(
 }
 
 static const int64 nTargetTimespan = 30 * 60;
-static const int64 nTargetTimespan5097 = 150;
 
 //
 // maximum nBits value could possible be required nTime after
@@ -1247,12 +1205,81 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 
     int nHeight = pindexLast->nHeight + 1; // Next block
     
-    // old skool ppc style
-    if (nHeight <= FORK_5037)
+    if (nHeight >= FORK_5000)
     {
-        static const int64 nTargetSpacingWorkMax = 12 * nWorkAndStakeTargetSpacing;
+        // DigiShield-like retarget.
+        
+        int blockstogoback = 0;
 
-        int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
+        if (fDebug)
+            printf("GetNextWorkRequired nActualTimespan Limiting\n");
+        
+        // 2.5 Mins
+        static const int64_t nTargetTimespanRe = nWorkAndStakeTargetSpacing5000;
+        
+        // 2.5 Mins
+        static const int64_t nTargetSpacingRe = nWorkAndStakeTargetSpacing5000;
+        
+        // 1 block
+        static const int64_t nIntervalRe = nTargetTimespanRe / nTargetSpacingRe;
+        
+        int64_t retargetTimespan = nTargetTimespanRe;
+        int64_t retargetSpacing = nTargetSpacingRe;
+        int64_t retargetInterval = nIntervalRe;
+
+        // Only change once per interval.
+        if ((pindexLast->nHeight + 1) % retargetInterval != 0)
+        {
+            return pindexLast->nBits;
+        }
+
+        // Go back the full period unless it's the first retarget after genesis.
+        blockstogoback = retargetInterval - 1;
+        
+        if ((pindexLast->nHeight+1) != retargetInterval)
+            blockstogoback = retargetInterval;
+        
+        // Go back by what we want to be 14 days worth of blocks
+        const CBlockIndex* pindexFirst = pindexLast;
+        
+        for (int i = 0; pindexFirst && i < blockstogoback; i++)
+            pindexFirst = pindexFirst->pprev;
+        
+        assert(pindexFirst);
+
+        // Limit adjustment step.
+        int64_t nActualTimespan =
+            pindexLast->GetBlockTime() - pindexFirst->GetBlockTime()
+        ;
+        
+        if(fDebug)
+            printf("nActualTimespan = %d  before bounds\n", nActualTimespan);
+
+        if(fDebug)
+            printf("GetNextWorkRequired nActualTimespan Limiting\n");
+        
+        if (nActualTimespan < (retargetTimespan - (retargetTimespan / 4)))
+            nActualTimespan = (retargetTimespan - (retargetTimespan / 4));
+        
+        if (nActualTimespan > (retargetTimespan + (retargetTimespan / 2)))
+            nActualTimespan = (retargetTimespan + (retargetTimespan / 2));
+
+        bnNew.SetCompact(pindexLast->nBits);
+        bnNew *= nActualTimespan;
+        bnNew /= retargetTimespan;
+
+        if (bnNew > bnTargetLimit)
+            bnNew = bnTargetLimit;
+    }
+    else
+    {
+        static const int64
+            nTargetSpacingWorkMax = 12 * nWorkAndStakeTargetSpacing
+        ;
+
+        int64 nActualSpacing =
+            pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime()
+        ;
         
         if(nActualSpacing < 0)
         {
@@ -1267,120 +1294,21 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         // ppcoin: retarget with exponential moving toward target spacing
         bnNew.SetCompact(pindexPrev->nBits);
 
-        int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing : min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing * (1 + pindexLast->nHeight - pindexPrev->nHeight));
+        int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing :
+            min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing *
+            (1 + pindexLast->nHeight - pindexPrev->nHeight))
+        ;
         int64 nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
+        
+        bnNew *=
+            ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing)
+        ;
         bnNew /= ((nInterval + 1) * nTargetSpacing);
         
         if (bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;
     }
-    else if (nHeight >= FORK_5097)
-    {
-        static const int64 nTargetSpacingWorkMax = 12 * nWorkAndStakeTargetSpacing6007;
-        
-        int64 nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
-        if(nActualSpacing < 0)
-        {
-            nActualSpacing = 1;
-        }
-        else if(nActualSpacing > nTargetTimespan5097)
-        {
-            nActualSpacing = nTargetTimespan5097;
-        }
-        
-        // ppcoin: target change every block
-        // ppcoin: retarget with exponential moving toward target spacing
-        CBigNum bnNew;
-        bnNew.SetCompact(pindexPrev->nBits);
-        int64 nTargetSpacing = fProofOfStake? nWorkAndStakeTargetSpacing6007 : min(nTargetSpacingWorkMax, (int64) nWorkAndStakeTargetSpacing6007 * (1 + pindexLast->nHeight - pindexPrev->nHeight));
-        int64 nInterval = nTargetTimespan5097 / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-        bnNew /= ((nInterval + 1) * nTargetSpacing);
-
-        if (bnNew > bnTargetLimit)
-            bnNew = bnTargetLimit;
-        
-        if(fDebug)
-          printf("RETARGET nTargetTimespan5097 = %"PRI64d", nActualSpacing = %"PRI64d", nTargetSpacingWorkMax = %"PRI64d", nTargetSpacing = %"PRI64d"\n",
-            nTargetTimespan5097, nActualSpacing, nTargetSpacingWorkMax, nTargetSpacing);
-    }
-    else
-    {
-        enum { nBaseTargetSpacing = 30 }; /* 30 seconds base spacing */
-        
-        // Retargets with two averaging windows of 5 and 20 blocks, * 0.25
-        // damping and +1% to -2% limiting
-
-        int64 nIntervalShort = 5, nIntervalLong = 20, nTargetSpacing, nTargetTimespan,
-              nActualTimespan, nActualTimespanShort, nActualTimespanLong, nActualTimespanAvg,
-              nActualTimespanMax, nActualTimespanMin;
-
-        if(fProofOfStake) {
-          if(nHeight > 760000) nTargetSpacing = 2*nBaseTargetSpacing;
-          else nTargetSpacing = 4*nBaseTargetSpacing;
-        } else {
-          if(nHeight > 760000) nTargetSpacing = 4*nBaseTargetSpacing;
-          else nTargetSpacing = 2*nBaseTargetSpacing;
-        }
-
-        nTargetTimespan = nTargetSpacing * nIntervalLong;
-
-        /* The short averaging window */
-        const CBlockIndex* pindexShort = pindexPrev;
-        for(int i = 0; pindexShort && (i < nIntervalShort); i++)
-          pindexShort = GetLastBlockIndex(pindexShort->pprev, fProofOfStake);
-        nActualTimespanShort = (int64)pindexPrev->nTime - (int64)pindexShort->nTime;
-
-        /* The long averaging window */
-        const CBlockIndex* pindexLong = pindexShort;
-        for(int i = 0; pindexLong && (i < (nIntervalLong - nIntervalShort)); i++)
-          pindexLong = GetLastBlockIndex(pindexLong->pprev, fProofOfStake);
-        nActualTimespanLong = (int64)pindexPrev->nTime - (int64)pindexLong->nTime;
-
-        /* Time warp protection */
-        nActualTimespanShort = max(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 15 / 20));
-        nActualTimespanShort = min(nActualTimespanShort, (nTargetSpacing * nIntervalShort * 20 / 15));
-        nActualTimespanLong  = max(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 15 / 20));
-        nActualTimespanLong  = min(nActualTimespanLong,  (nTargetSpacing * nIntervalLong  * 20 / 15));
-
-        /* The average of both windows */
-        nActualTimespanAvg = (nActualTimespanShort * (nIntervalLong / nIntervalShort) + nActualTimespanLong) / 2;
-
-        /* 0.25 damping */
-        nActualTimespan = nActualTimespanAvg + 3*nTargetTimespan;
-        nActualTimespan /= 4;
-
-        if (fDebug) {
-            fProofOfStake? printf("RETARGET PoS ") : printf("RETARGET PoW ");
-            printf("heights: Last = %d, Prev = %d, Short = %d, Long = %d\n",
-              pindexLast->nHeight, pindexPrev->nHeight, pindexShort->nHeight, pindexLong->nHeight);
-            printf("RETARGET time stamps: Last = %u, Prev = %u, Short = %u, Long = %u\n",
-              pindexLast->nTime, pindexPrev->nTime, pindexShort->nTime, pindexLong->nTime);
-            printf("RETARGET windows: short = %"PRI64d" (%"PRI64d"), long = %"PRI64d", average = %"PRI64d", damped = %"PRI64d"\n",
-              nActualTimespanShort, nActualTimespanShort*(nIntervalLong/nIntervalShort), nActualTimespanLong,
-              nActualTimespanAvg, nActualTimespan);
-        }
-
-        /* Difficulty limiters */
-        nActualTimespanMax = nTargetTimespan*102/100;
-        nActualTimespanMin = nTargetTimespan*100/101;
-        if(nActualTimespan < nActualTimespanMin) nActualTimespan = nActualTimespanMin;
-        if(nActualTimespan > nActualTimespanMax) nActualTimespan = nActualTimespanMax;
-
-        /* Retarget */
-        bnNew.SetCompact(pindexPrev->nBits);
-        bnNew *= nActualTimespan;
-        bnNew /= nTargetTimespan;
-
-        if(bnNew > bnTargetLimit) bnNew = bnTargetLimit;
-
-        if(fDebug)
-          printf("RETARGET nTargetTimespan = %"PRI64d", nActualTimespan = %"PRI64d", nTargetTimespan/nActualTimespan = %.4f\n",
-            nTargetTimespan, nActualTimespan, (float)nTargetTimespan/nActualTimespan);
-    }
-    
     return bnNew.GetCompact();
 }
 
@@ -2830,7 +2758,7 @@ bool LoadBlockIndex(bool fAllowNew)
 		nModifierInterval = 60; // test modifier interval is 2 minutes
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
         nWorkAndStakeTargetSpacing = 3 * 60; // test block spacing is 3 minutes
-        nWorkAndStakeTargetSpacing6007 = 1; // 1 min
+        nWorkAndStakeTargetSpacing5000 = 1; // 1 min
     }
 
     //

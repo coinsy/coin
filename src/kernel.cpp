@@ -11,7 +11,7 @@ using namespace std;
 
 extern int nStakeMaxAge;
 extern int nWorkAndStakeTargetSpacing;
-extern int nWorkAndStakeTargetSpacing6007;
+extern int nWorkAndStakeTargetSpacing5000;
 
 // Modifier interval: time to elapse before new modifier is computed
 // Set to 3-hour for production network and 20-minute for test network
@@ -148,13 +148,13 @@ bool ComputeNextStakeModifier(const unsigned int nBlockPos, const CBlockIndex* p
     // Sort candidate blocks by timestamp
     vector<pair<int64, uint256> > vSortedByTimestamp;
     
-    if (nBlockPos < FORK_5097)
+    if (nBlockPos < FORK_5000)
     {
         vSortedByTimestamp.reserve(64 * nModifierInterval / nWorkAndStakeTargetSpacing);
     }
     else
     {
-        vSortedByTimestamp.reserve(64 * nModifierInterval / nWorkAndStakeTargetSpacing6007);
+        vSortedByTimestamp.reserve(64 * nModifierInterval / nWorkAndStakeTargetSpacing5000);
     }
     
     int64 nSelectionInterval = GetStakeModifierSelectionInterval();

@@ -992,17 +992,16 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
     }
     else
     {
-        nReward = nHeight % 7 == 0 ? 9600 : 24;
+        // Blocks that are divisible by 7 are bonus blocks.
+        nReward = (nHeight % 7) == 0 ? (2400 * 2) : 24;
     }
     
 	int64 nSubsidy = nReward * COIN;
     
     double dFactor = 0.0;
     
-    /**
-     * For the first nReward blocks we generate small amounts.
-     */
-    if (nHeight < nReward)
+    // For the first 24 blocks we generate small amounts.
+    if (nHeight < 24)
     {
         nSubsidy = nHeight * nReward;
         
@@ -1031,7 +1030,7 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
              * Reward is halved every ~7.01875 days.
              */
             dFactor = nHeight / (YEARLY_BLOCKCOUNT_FORK_5000 / 52.0f);
-            
+
             nSubsidy >>= (int64)dFactor;
         }
         
@@ -1236,7 +1235,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         // Go back the full period unless it's the first retarget after genesis.
         blockstogoback = retargetInterval - 1;
         
-        if ((pindexLast->nHeight+1) != retargetInterval)
+        if ((pindexLast->nHeight + 1) != retargetInterval)
             blockstogoback = retargetInterval;
         
         // Go back by what we want to be 14 days worth of blocks
@@ -1256,7 +1255,11 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
             printf("nActualTimespan = %d  before bounds\n", nActualTimespan);
 
         if(fDebug)
-            printf("GetNextWorkRequired nActualTimespan Limiting\n");
+            printf(
+                "GetNextWorkRequired nActualTimespan Limiting: %d:%d\n",
+                (retargetTimespan - (retargetTimespan / 4)),
+                (retargetTimespan + (retargetTimespan / 2))
+            );
         
         if (nActualTimespan < (retargetTimespan - (retargetTimespan / 4)))
             nActualTimespan = (retargetTimespan - (retargetTimespan / 4));

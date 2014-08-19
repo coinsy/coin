@@ -10,6 +10,7 @@
 #include "init.h" 
 #include "ui_interface.h"
 #include "kernel.h"
+#include "lucky_mine.h"
 #include "scrypt_mine.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -4604,21 +4605,17 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
         unsigned int max_nonce = 0xffff0000;
-        block_header res_header;
+        CBlock::header_t res_header;
         uint256 result;
-
+        
         loop
         {
             unsigned int nHashesDone = 0;
             unsigned int nNonceFound;
 
             nNonceFound = scanhash_scrypt(
-                        (block_header *)&pblock->nVersion,
-                        scratchbuf,
-                        max_nonce,
-                        nHashesDone,
-                        UBEGIN(result),
-                        &res_header
+                (CBlock::header_t *)&pblock->nVersion, scratchbuf,
+                max_nonce, nHashesDone, UBEGIN(result), &res_header
             );
 
             // Check if something found

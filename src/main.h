@@ -7,6 +7,7 @@
 
 #include "bignum.h"
 #include "sync.h"
+#include "lucky_mine.h"
 #include "net.h"
 #include "script.h"
 #include "scrypt_mine.h"
@@ -39,10 +40,9 @@ static const int64 MAX_MINT_PROOF_OF_STAKE = 0.01 * COIN; // 1% annual interest
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 
 /**
- * Because of the halving algorithm we could technically let PoW run forever,
- * instead we let it run until there is no reward left.
+ * A very long time.
  */
-static const int POW_CUTOFF_BLOCK = 252692;
+static const int POW_CUTOFF_BLOCK = 999999;
 
 inline bool MoneyRange(int64 nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
@@ -842,6 +842,17 @@ public:
 class CBlock
 {
 public:
+
+    typedef struct
+    {
+        unsigned int version;
+        uint256 prev_block;
+        uint256 merkle_root;
+        unsigned int timestamp;
+        unsigned int bits;
+        unsigned int nonce;
+    } header_t;
+
     // header
     static const int CURRENT_VERSION=4;
     int nVersion;
@@ -914,10 +925,11 @@ public:
     uint256 GetHash() const
     {
         uint256 thash;
+
         void * scratchbuff = scrypt_buffer_alloc();
 
         scrypt_hash(
-            CVOIDBEGIN(nVersion), sizeof(block_header), UINTBEGIN(thash),
+            CVOIDBEGIN(nVersion), sizeof(CBlock::header_t), UINTBEGIN(thash),
             scratchbuff
         );
 
@@ -937,9 +949,10 @@ public:
     unsigned int GetStakeEntropyBit(unsigned int nHeight) const
     {
         // Take last bit of block hash as entropy bit
-        unsigned int nEntropyBit = ((GetHash(/*nHeight*/).Get64()) & 1llu);
+        unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
         if (fDebug && GetBoolArg("-printstakemodifier"))
-            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n", nHeight, GetHash(/*nHeight*/).ToString().c_str(), nEntropyBit);
+            printf("GetStakeEntropyBit: nHeight=%u hashBlock=%s nEntropyBit=%u\n",
+            nHeight, GetHash().ToString().c_str(), nEntropyBit);
         return nEntropyBit;
     }
 
@@ -1413,7 +1426,7 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
-        return block.GetHash(/*0*/);
+        return block.GetHash();
     }
 
 

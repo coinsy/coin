@@ -423,7 +423,7 @@ public:
         // Read instruction
         if (end() - pc < 1)
             return false;
-        unsigned int opcode = *pc++;
+        opcodetype opcode = (opcodetype)*pc++;
 
         // Immediate operand
         if (opcode <= OP_PUSHDATA4)

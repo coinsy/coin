@@ -10,7 +10,6 @@
 #include "init.h" 
 #include "ui_interface.h"
 #include "kernel.h"
-#include "lucky_mine.h"
 #include "scrypt_mine.h"
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -79,7 +78,7 @@ unsigned int nWorkAndStakeTargetSpacing5000 = 2.5 * 60;
 int64 nChainStartTime = 1395376312;
 
 /**
- * Coins mature after 288 blocks or approximately 1 day at 5 minutes per block.
+ * Coins mature after 288 blocks or approximately 12 hours at 2.5 mins per block.
  */
 int nCoinbaseMaturity = 288;
 

@@ -7,7 +7,6 @@
 
 #include "bignum.h"
 #include "sync.h"
-#include "lucky_mine.h"
 #include "net.h"
 #include "script.h"
 #include "scrypt_mine.h"
@@ -35,7 +34,7 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE / 100;
 static const unsigned int MAX_INV_SZ = 50000;
 static const int64 MIN_TX_FEE = 1.0 * CENT;
 static const int64 MIN_RELAY_TX_FEE = 1.0 * CENT;
-static const int64 MAX_MONEY = 77000000 * COIN; // 77 million
+static const int64 MAX_MONEY = 7000000 * COIN; // 7 million
 static const int64 MAX_MINT_PROOF_OF_STAKE = 0.01 * COIN; // 1% annual interest
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
 

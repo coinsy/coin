@@ -704,6 +704,7 @@ bool CTxDB::LoadBlockIndex()
                     {
                         // either an error or a duplicate transaction
                         CTransaction txFound;
+                        
                         if (!txFound.ReadFromDisk(txindex.pos))
                         {
                             printf("LoadBlockIndex() : *** cannot read mislocated transaction %s\n", hashTx.ToString().c_str());
